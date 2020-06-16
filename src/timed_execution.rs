@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::sync::Arc;
 use std::sync::Mutex;
-use std::time::Instant;
+use std::{env, time::Instant};
 type ThreadSafeFile = Arc<Mutex<Option<File>>>;
 
 lazy_static! {
@@ -10,7 +10,7 @@ lazy_static! {
 }
 
 /// logs the timing information into "timing.txt" file
-fn log(message: String) {
+fn write_to_file(message: String) {
     let handle =TIMING_FILE.clone();
     let mut thread_safe_file = handle.lock().unwrap();
     if let Some(file) = thread_safe_file.as_mut() {
@@ -35,24 +35,41 @@ pub fn _close() {
     
 }
 
-pub fn log_time<'a>(function: &'static str) -> LogTime {
+pub fn log_time<'a>(function: &str) -> LogTime {
     LogTime {
         function,
         start: Instant::now(),
+        to_file: false
+    }
+}
+
+pub fn log_time_to_file<'a>(function: & str) -> LogTime {
+    LogTime {
+        function,
+        start: Instant::now(),
+        to_file: true
     }
 }
 
 pub struct LogTime<'a> {
     function: &'a str,
     start: Instant,
+    to_file: bool
 }
 
 impl<'a> Drop for LogTime<'a> {
     fn drop(&mut self) {
-        let ns = self.start.elapsed().as_micros();
-        let printable_value = format!("[timed]:[function:{}]:[{} ms, {} ns]\n", self.function, ns / 1000, ns);
-        println!("{}", printable_value);
-        log(printable_value);
+        if let Ok(_) = env::var("TIMED_ENABLED") {
+            let us = self.start.elapsed().as_micros();
+            let ms = self.start.elapsed().as_millis();
+            let printable_value = format!("[timed]:[function:{}]:[{} ms, {} us]\n", self.function, ms, us);
+            if self.to_file {
+                write_to_file(printable_value);
+            } else {
+                println!("{}", printable_value);
+            } 
+        }
+        
     }
 }
 
