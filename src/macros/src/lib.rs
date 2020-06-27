@@ -1,30 +1,11 @@
 
 #[macro_use]
 extern crate quote;
+extern crate proc_macro;
 use syn::Lit::Str;
 use proc_macro::TokenStream;
-use syn::{Attribute, LitStr, parse_quote, parse_macro_input};
+use syn::{Attribute, parse_quote};
 
-
-/// Used to log the time to stdout
-/// ### Usage
-/// ```ignore
-/// {
-///     timed_block!("a_timed_block")
-///     // your code ...
-/// }
-/// ```
-/// 
-/// This will print `[timed]:[function:a_timed_block]:[0 ms, 15 us]` to std out
-#[proc_macro]
-pub fn timed_block(item: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(item as LitStr);
-    let name = input.value();
-    let expanded = quote!{
-        let _log_time = timed::timed_execution::log_time(&#name);
-    };
-    TokenStream::from(expanded)
-}
 
 fn validate_attribute(attr: &Attribute) -> (bool, Option<String>) {
     if let Ok(meta) = Attribute::parse_meta(attr) {
@@ -49,7 +30,6 @@ fn validate_attribute(attr: &Attribute) -> (bool, Option<String>) {
     }
     (false, None)
 }
-
 
 /// Used to log the time to stdout
 /// ### Usage

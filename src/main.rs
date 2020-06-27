@@ -1,7 +1,8 @@
+
 extern crate timed;
-use timed::timed_macro::timed_block;
-use timed::timed_macro::timed_fn;
 use std::env;
+use timed::timed_block;
+use timed::timed_fn;
 fn main() {
     let key = "TIMED_ENABLED";
     env::set_var(key, "1");
@@ -32,7 +33,7 @@ mod tests {
     use std::process::{Command, Stdio};
 
     #[test]
-    fn run_splitter_integration_test_no_options() -> io::Result<()> {
+    fn run_timed_macro_tests() -> io::Result<()> {
         {
             println!("Building, running cargo ********");
             let mut c = Command::new("/Users/kprajith/.cargo/bin/cargo")

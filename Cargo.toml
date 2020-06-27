@@ -9,6 +9,9 @@ edition = "2018"
 
 [dependencies]
 timed_macro = {path = "./src/macros"}
+proc-macro-hack = "0.5"
+
+
 
 
 
