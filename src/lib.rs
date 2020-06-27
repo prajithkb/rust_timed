@@ -1,55 +1,50 @@
-//!
+//! Provides two macros to time your execution
 //! 
-//! A simple library that provides a macro to measure the wall clock duration of a function.
+//! Usage
+//! ```
 //! 
-//! ### By default timing is disabled, run your binary with `TIMED_ENABLED=1` to collect these measurements
-//! ```ignore
-//! fn some_function() {
-//!     timed!("some_function")
-//!     //... your logic
+//! extern crate timed;
+//! use timed::timed_macro::timed_block;
+//! use timed::timed_macro::timed_fn;
+//! 
+//! fn main() {
+//!     timed_block_fn();
+//!     timed_attribute_fn_with_custom_name();
+//!     timed_attribute_fn_with_no_name();
+//! }
+//! 
+//! fn timed_block_fn() {
+//!     timed_block!("timed_fn_name");
+//!     println!("A timed block function");
+//! }
+//! 
+//! #[timed_fn(name = "custom_name")]
+//! fn timed_attribute_fn_with_custom_name() {
+//!     println!("A timed attribute function with custom name");
+//! }
+//! 
+//! #[timed_fn]
+//! fn timed_attribute_fn_with_no_name() {
+//!     println!("A timed attribute function no name");
 //! }
 //! ```
-//! This will print the duration in the following format to stdout
 //! 
+//! When the above code is run 
 //! ```ignore
-//! [timed_execution]:[function:some_function]:[134 ms, 134099 ns]
-//! ```
-//! if you want the output in a file use 
-//! ```ignore
-//! timed_to_file!("some_function")
-//! ```
-//! This will write the timings to timing.txt in the current folder
+//! TIMED_ENABLED=1 cargo run;
 //! 
-//! **Note:** Make sure to add the following to your `main.rs` or `lib.rs` 
-//! ```ignore
-//! #[macro_use]
-//! extern crate timed;
+//! //Outputs
+//! 
+//! A timed block function
+//![timed]:[function:timed_fn_name]:[0 ms, 42 us]
+//!
+//!A timed attribute function with custom name
+//![timed]:[function:timed_attribute_fn_with_custom_name]:[0 ms, 2 us]
+//!
+//!A timed attribute function no name
+//![timed]:[function:timed_attribute_fn_with_no_name]:[0 ms, 1 us]
 //! ```
 //! 
-#[macro_use]
-extern crate lazy_static;
+//! Note: By default the **timed is disabled**, you need to run it with `TIMED_ENABLED=1`
+pub use timed_macro;
 pub mod timed_execution;
-
-
-/// Used to log the time to stdout
-#[macro_export]
-macro_rules! timed {
-    ($function_name:expr) => {
-        let _log_time = $crate::timed_execution::log_time($function_name);
-    };
-}
-/// Used to log time to "timing.txt" in the current folder
-#[macro_export]
-macro_rules! timed_to_file {
-    ($function_name:expr) => {
-        let _log_time = $crate::timed_execution::log_time_to_file($function_name);
-    };
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn measures_duration() {
-        timed!("timed_test");
-    }
-}
