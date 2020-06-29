@@ -14,16 +14,16 @@
 //! }
 //! 
 //! fn timed_block_fn() {
-//!     timed_block!("timed_fn_name");
+//!     timed_block!("timed_fn_name"); // Usage
 //!     println!("A timed block function");
 //! }
 //! 
-//! #[timed_fn(name = "custom_name")]
+//! #[timed_fn(name = "custom_name")] // Usage
 //! fn timed_attribute_fn_with_custom_name() {
 //!     println!("A timed attribute function with custom name");
 //! }
 //! 
-//! #[timed_fn]
+//! #[timed_fn] // Usage, this uses the function name by default
 //! fn timed_attribute_fn_with_no_name() {
 //!     println!("A timed attribute function no name");
 //! }

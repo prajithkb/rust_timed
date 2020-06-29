@@ -9,6 +9,7 @@ fn main() {
     timed_block_fn();
     timed_attribute_fn_with_custom_name();
     timed_attribute_fn_with_no_name();
+    timed_attribute_fn_with_other_attributes();
 }
 
 fn timed_block_fn() {
@@ -23,7 +24,12 @@ fn timed_attribute_fn_with_custom_name() {
 
 #[timed_fn]
 fn timed_attribute_fn_with_no_name() {
-    println!("A timed attribute function no name");
+    println!("A timed attribute function with no name");
+}
+/// Test
+#[timed_fn]
+fn timed_attribute_fn_with_other_attributes() {
+    println!("A timed attribute function with other attributes");
 }
 
 
@@ -56,21 +62,21 @@ mod tests {
             .map(|s| {
                 // Get rid of the timing information since it is not consistent
                 let mut ss: Vec<&str> = s.split(":").collect();
-                println!("{:?}", ss.len());
                 if ss.len() == 4{
                     ss.remove(3);
                     return ss.join(":");
                 }
-                println!("{:?}", ss);
                 return s.to_string()
             })
             .collect();
         assert_eq!(vec!["A timed block function", 
             "[timed]:[function:timed_fn_name]", 
             "A timed attribute function with custom name", 
-            "[timed]:[function:timed_attribute_fn_with_custom_name]",
-            "A timed attribute function no name", 
-            "[timed]:[function:timed_attribute_fn_with_no_name]"], 
+            "[timed]:[function:custom_name]",
+            "A timed attribute function with no name", 
+            "[timed]:[function:timed_attribute_fn_with_no_name]", 
+            "A timed attribute function with other attributes",
+            "[timed]:[function:timed_attribute_fn_with_other_attributes]"], 
              output);
         Ok(())
     }

@@ -1,66 +1,53 @@
-
 #[macro_use]
 extern crate quote;
 extern crate proc_macro;
-use syn::Lit::Str;
 use proc_macro::TokenStream;
-use syn::{Attribute, parse_quote};
-
-
-fn validate_attribute(attr: &Attribute) -> (bool, Option<String>) {
-    if let Ok(meta) = Attribute::parse_meta(attr) {
-        match meta {
-            syn::Meta::NameValue(name_value) => {
-                let key_is_timed_fn = name_value.path.is_ident("timed_fn");
-                if key_is_timed_fn {
-                    if let Str(s) = name_value.lit {
-                        println!("{:#?}", s.value());
-                        return (true, Some(s.value()))
-                    };
-                }
-            },
-            syn::Meta::Path(path) => {
-                let key_is_timed_fn = path.is_ident("timed_fn");
-                if key_is_timed_fn {
-                    return (true, None)
-                }
-            },
-            _ => {}
-        }
-    }
-    (false, None)
-}
+use syn::{parse_quote, Meta, NestedMeta, Lit::Str};
 
 /// Used to log the time to stdout
 /// ### Usage
 /// ```ignore
 /// {
-///     timed_fn!("some_fn")
+///     #[timed_fn(name = "some_fn")]
+///     fn some_fn() {
+///         //your code..
+///     }
+/// }
+/// // OR
+/// {
+///     #[timed_fn]
 ///     fn some_fn() {
 ///         //your code..
 ///     }
 /// }
 /// ```
-/// 
+///
 /// This will print `[timed]:[function:some_fn]:[0 ms, 15 us]` to std out
 #[proc_macro_attribute]
-pub fn timed_fn(_: TokenStream, item: TokenStream) -> TokenStream {
+pub fn timed_fn(att: TokenStream, item: TokenStream) -> TokenStream {
     let mut function = syn::parse_macro_input!(item as syn::ItemFn);
-    let mut metric_name: Option<String> = None;
-    function.attrs.retain(|x| {
-        let (valid_attribute, m) = validate_attribute(x);
-        metric_name = m;
-        if !valid_attribute {
-            panic!(format!("Invalid attribute! Please use #[timed_fn(name=\"some name\")] or #[timed_fn]"));
+    let args = syn::parse_macro_input!(att as syn::AttributeArgs);
+    let mut metric_name= function.sig.ident.to_string();
+    
+    for arg in args {
+        match arg {
+            NestedMeta::Meta(meta) => {
+                match meta {
+                    Meta::NameValue(name_value) => {
+                        if let Str(str) =  name_value.lit {
+                            metric_name = str.value();
+                        }
+                    },
+                    _ =>{},
+                }
+            },
+            _ => {}
         }
-        valid_attribute
-    });
+    }
     let stmts = function.block.stmts;
-    let name = metric_name.unwrap_or(function.sig.ident.to_string());
     function.block = Box::new(parse_quote!({
-        let _log_time = timed::timed_execution::log_time(&#name);
+        let _log_time = timed::timed_execution::log_time(&#metric_name);
         #(#stmts)*
     }));
-   
     TokenStream::from(quote!(#function))
 }
